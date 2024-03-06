@@ -32,6 +32,7 @@ public:
     std::map<Encodable, Encodable> Unregister();
     std::map<Encodable, Encodable> StartCapture(int width, int height);
     void StopCapture();
+    void CheckImage(std::string imagePath);
     std::map<Encodable, Encodable> GetState();
     void GetImageBase64(const TakeImageBase64Handler &takeImageBase64);
     std::map<Encodable, Encodable> ResizeFrame(int width, int height);

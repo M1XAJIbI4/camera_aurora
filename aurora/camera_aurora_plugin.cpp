@@ -27,6 +27,7 @@ constexpr auto Dispose = "dispose";
 constexpr auto StartCapture = "startCapture";
 constexpr auto StopCapture = "stopCapture";
 constexpr auto TakePicture = "takePicture";
+constexpr auto CheckImage = "checkImage";
 } // namespace CameraAuroraMethods
 
 namespace CameraAuroraEvents {
@@ -93,6 +94,10 @@ void CameraAuroraPlugin::RegisterMethods(PluginRegistrar &registrar)
         }
         if (method == CameraAuroraMethods::TakePicture) {
             onTakePicture(call);
+            return;
+        }
+        if (method == CameraAuroraMethods::CheckImage) {
+            onCheckImage(call);
             return;
         }
 
@@ -196,6 +201,14 @@ void CameraAuroraPlugin::onTakePicture(const MethodCall &call)
     m_textureCamera->GetImageBase64(
         [call](std::string base64) { call.SendSuccessResponse(base64); });
 }
+
+void CameraAuroraPlugin::onCheckImage(const MethodCall &call)0
+{   
+    auto imagePath = call.GetArgument<Encodable::String>("imagePath");
+    // auto result = m_textureCamera->CheckImage('');
+    call.SendSuccessResponse(imagePath);
+}
+
 
 void CameraAuroraPlugin::unimplemented(const MethodCall &call)
 {

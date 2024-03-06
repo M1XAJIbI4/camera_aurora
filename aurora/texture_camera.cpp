@@ -15,12 +15,9 @@
 TextureCamera::TextureCamera(const TextureRegistrar &plugin,
                              const CameraErrorHandler &onError,
                              const ChangeQRHandler &onChangeQR)
-    : m_plugin(plugin)
-    , m_onError(onError)
-    , m_onChangeQR(onChangeQR)
-    , m_manager(StreamCameraManager())
-    , m_camera(nullptr)
-{}
+    : m_plugin(plugin), m_onError(onError), m_onChangeQR(onChangeQR), m_manager(StreamCameraManager()), m_camera(nullptr)
+{
+}
 
 void TextureCamera::GetImageBase64(const TakeImageBase64Handler &takeImageBase64)
 {
@@ -28,14 +25,22 @@ void TextureCamera::GetImageBase64(const TakeImageBase64Handler &takeImageBase64
     m_isTakeImageBase64 = true;
 }
 
+void TextureCamera::CheckImage(const std::string &imagePath)
+{
+    std::cout << "TESTING:" << imagePath << std::endl;
+    return "FOOBAR";
+}
+
 std::vector<Encodable> TextureCamera::GetAvailableCameras()
 {
     std::vector<Encodable> cameras;
     auto count = m_manager->getNumberOfCameras();
 
-    for (int index = 0; index < count; index++) {
+    for (int index = 0; index < count; index++)
+    {
         Aurora::StreamCamera::CameraInfo info;
-        if (m_manager->getCameraInfo(index, info)) {
+        if (m_manager->getCameraInfo(index, info))
+        {
             cameras.push_back(std::map<Encodable, Encodable>{
                 {"id", info.id},
                 {"name", info.name},
@@ -50,7 +55,8 @@ std::vector<Encodable> TextureCamera::GetAvailableCameras()
 
 std::map<Encodable, Encodable> TextureCamera::GetState()
 {
-    if (m_camera) {
+    if (m_camera)
+    {
         return std::map<Encodable, Encodable>{
             {"id", m_info.id},
             {"textureId", m_textureId},
@@ -67,23 +73,32 @@ std::map<Encodable, Encodable> TextureCamera::GetState()
 
 bool TextureCamera::CreateCamera(std::string cameraName)
 {
-    if (m_camera) {
+    if (m_camera)
+    {
         return true;
     }
 
-    if (m_manager->init()) {
-        if (auto count = m_manager->getNumberOfCameras()) {
-            for (int index = 0; index < count; index++) {
-                if (m_manager->getCameraInfo(index, m_info)) {
-                    if (m_info.id == cameraName) {
+    if (m_manager->init())
+    {
+        if (auto count = m_manager->getNumberOfCameras())
+        {
+            for (int index = 0; index < count; index++)
+            {
+                if (m_manager->getCameraInfo(index, m_info))
+                {
+                    if (m_info.id == cameraName)
+                    {
                         m_camera = m_manager->openCamera(m_info.id);
 
                         std::vector<Aurora::StreamCamera::CameraCapability> caps;
 
-                        if (m_camera && m_manager->queryCapabilities(m_info.id, caps)) {
+                        if (m_camera && m_manager->queryCapabilities(m_info.id, caps))
+                        {
                             m_cap = caps.back();
                             return true;
-                        } else {
+                        }
+                        else
+                        {
                             SendError("Stream camera error open camera");
                             return false;
                         }
@@ -104,7 +119,8 @@ void TextureCamera::SendError(std::string error)
 
 std::map<Encodable, Encodable> TextureCamera::StartCapture(int width, int height)
 {
-    if (m_camera && !m_camera->captureStarted()) {
+    if (m_camera && !m_camera->captureStarted())
+    {
         m_viewWidth = width;
         m_viewHeight = height;
 
@@ -112,10 +128,13 @@ std::map<Encodable, Encodable> TextureCamera::StartCapture(int width, int height
 
         m_isStart = m_camera->startCapture(m_cap);
 
-        if (!m_isStart) {
+        if (!m_isStart)
+        {
             Unregister();
             SendError("Stream camera error start capture");
-        } else {
+        }
+        else
+        {
             m_camera->setListener(this);
         }
     }
@@ -128,13 +147,15 @@ void TextureCamera::StopCapture()
     m_isStart = false;
 
     int index = 0;
-    do {
+    do
+    {
         std::this_thread::sleep_for(
             std::chrono::milliseconds(m_chromaStep == 1 ? 10 : 500 /* r7 */));
         index++;
     } while (m_isTakeImageBase64 && index < 200);
 
-    if (m_camera && m_camera->captureStarted()) {
+    if (m_camera && m_camera->captureStarted())
+    {
         m_camera->stopCapture();
         m_camera->setListener(nullptr);
     }
@@ -143,15 +164,18 @@ void TextureCamera::StopCapture()
 std::map<Encodable, Encodable> TextureCamera::Register(std::string cameraName)
 {
     m_textureId = m_plugin.RegisterTexture(
-        [this](size_t, size_t) -> std::optional<BufferVariant> {
-            if (m_bits && m_captureWidth != 0 && m_captureHeight != 0) {
+        [this](size_t, size_t) -> std::optional<BufferVariant>
+        {
+            if (m_bits && m_captureWidth != 0 && m_captureHeight != 0)
+            {
                 return std::make_optional(BufferVariant(
-                    FlutterPixelBuffer{m_bits, (size_t) m_captureWidth, (size_t) m_captureHeight}));
+                    FlutterPixelBuffer{m_bits, (size_t)m_captureWidth, (size_t)m_captureHeight}));
             }
             return std::nullopt;
         });
 
-    if (CreateCamera(cameraName) && m_viewWidth != 0) {
+    if (CreateCamera(cameraName) && m_viewWidth != 0)
+    {
         StartCapture(m_viewWidth, m_viewHeight);
     }
 
@@ -162,7 +186,8 @@ std::map<Encodable, Encodable> TextureCamera::Unregister()
 {
     m_bits = nullptr;
 
-    if (m_camera) {
+    if (m_camera)
+    {
         m_isStart = false;
         m_camera->stopCapture();
         m_camera->setListener(nullptr);
@@ -183,7 +208,8 @@ std::map<Encodable, Encodable> TextureCamera::Unregister()
 
 std::map<Encodable, Encodable> TextureCamera::ResizeFrame(int width, int height)
 {
-    if (m_isStart && !(width == m_captureWidth || height == m_captureHeight)) {
+    if (m_isStart && !(width == m_captureWidth || height == m_captureHeight))
+    {
         ResizeFrame(width, height, m_info, m_cap, m_captureWidth, m_captureHeight);
     }
     return GetState();
@@ -202,7 +228,8 @@ void TextureCamera::ResizeFrame(int width,
     auto dw = width < 500 ? 500 : width + 100;
     auto dh = height < 500 ? 500 : height + 100;
 
-    if (info.mountAngle == 270 || info.mountAngle == 90) {
+    if (info.mountAngle == 270 || info.mountAngle == 90)
+    {
         cw = cap.height;
         ch = cap.width;
     }
@@ -212,7 +239,8 @@ void TextureCamera::ResizeFrame(int width,
     captureHeight = dh;
     captureWidth = (cw * dh) / ch;
 
-    if (captureWidth > dw) {
+    if (captureWidth > dw)
+    {
         captureWidth = dw;
         captureHeight = (ch * dw) / cw;
     }
@@ -223,10 +251,12 @@ std::optional<std::shared_ptr<const Aurora::StreamCamera::YCbCrFrame>> TextureCa
 {
     auto frame = buffer->mapYCbCr();
 
-    if (m_isTakeImageBase64) {
+    if (m_isTakeImageBase64)
+    {
         std::string base64 = "";
 
-        if (frame->chromaStep == 1 /* I420 */) {
+        if (frame->chromaStep == 1 /* I420 */)
+        {
             base64 = yuv::YUVToBase64(frame->y,
                                       frame->cr,
                                       frame->cb,
@@ -237,7 +267,8 @@ std::optional<std::shared_ptr<const Aurora::StreamCamera::YCbCrFrame>> TextureCa
                                       m_info.id.find("front") != std::string::npos ? -1 : 1);
         }
 
-        else if (frame->chromaStep == 2 /* NV12 */) {
+        else if (frame->chromaStep == 2 /* NV12 */)
+        {
             base64 = yuv::YUVToBase64(frame->y,
                                       frame->cr,
                                       nullptr,
@@ -255,11 +286,13 @@ std::optional<std::shared_ptr<const Aurora::StreamCamera::YCbCrFrame>> TextureCa
 
     m_counter += 1;
 
-    if (m_counter < 0) {
+    if (m_counter < 0)
+    {
         m_counter = 0;
     }
 
-    if (m_counter % 3 == 0) {
+    if (m_counter % 3 == 0)
+    {
         return std::nullopt;
     }
 
@@ -268,20 +301,24 @@ std::optional<std::shared_ptr<const Aurora::StreamCamera::YCbCrFrame>> TextureCa
 
 void TextureCamera::onCameraFrame(std::shared_ptr<Aurora::StreamCamera::GraphicBuffer> buffer)
 {
-    if (!m_isStart && !m_isTakeImageBase64) {
+    if (!m_isStart && !m_isTakeImageBase64)
+    {
         return;
     }
 
-    if (auto optional = GetFrame(buffer)) {
+    if (auto optional = GetFrame(buffer))
+    {
         auto frame = optional.value();
 
         m_chromaStep = frame->chromaStep;
 
-        if (m_enableSearchQr) {
+        if (m_enableSearchQr)
+        {
             SearchQr(frame);
         }
 
-        if (frame->chromaStep == 1 /* I420 */) {
+        if (frame->chromaStep == 1 /* I420 */)
+        {
             auto result = yuv::I420Scale(frame->y,
                                          frame->cr,
                                          frame->cb,
@@ -290,7 +327,9 @@ void TextureCamera::onCameraFrame(std::shared_ptr<Aurora::StreamCamera::GraphicB
                                          m_captureWidth,
                                          m_captureHeight);
             m_bits = yuv::I420ToARGB(result.y, result.u, result.v, result.width, result.height);
-        } else if (frame->chromaStep == 2 /* NV12 */) {
+        }
+        else if (frame->chromaStep == 2 /* NV12 */)
+        {
             auto result = yuv::NV12Scale(frame->y,
                                          frame->cr,
                                          frame->width,
@@ -328,11 +367,13 @@ void TextureCamera::SearchQr(std::shared_ptr<const Aurora::StreamCamera::YCbCrFr
 
     m_counter_qr += 1;
 
-    if (m_counter_qr < 0) {
+    if (m_counter_qr < 0)
+    {
         m_counter_qr = 0;
     }
 
-    if (m_counter_qr % size != 0) {
+    if (m_counter_qr % size != 0)
+    {
         return;
     }
 
@@ -342,7 +383,8 @@ void TextureCamera::SearchQr(std::shared_ptr<const Aurora::StreamCamera::YCbCrFr
 
     std::shared_ptr<uint8_t> bits;
 
-    if (frame->chromaStep == 1 /* I420 */) {
+    if (frame->chromaStep == 1 /* I420 */)
+    {
         auto result = yuv::I420Scale(frame->y,
                                      frame->cr,
                                      frame->cb,
@@ -352,27 +394,32 @@ void TextureCamera::SearchQr(std::shared_ptr<const Aurora::StreamCamera::YCbCrFr
                                      height);
 
         bits = yuv::I420ToARGB(result.y, result.u, result.v, result.width, result.height);
-    } else if (frame->chromaStep == 2 /* NV12 */) {
-        auto result
-            = yuv::NV12Scale(frame->y, frame->cr, frame->width, frame->height, width, height);
+    }
+    else if (frame->chromaStep == 2 /* NV12 */)
+    {
+        auto result = yuv::NV12Scale(frame->y, frame->cr, frame->width, frame->height, width, height);
         bits = yuv::NV12ToARGB(result.y, result.uv, result.width, result.height);
     }
 
-    if (bits) {
+    if (bits)
+    {
         auto image = ZXing::ImageView(bits.get(), width, height, ZXing::ImageFormat::RGBX);
 
-        #if PSDK_MAJOR == 5
-            auto hints = ZXing::DecodeHints().setFormats(ZXing::BarcodeFormat::QRCode);
-        #else
-            auto hints = ZXing::DecodeHints().setFormats(ZXing::BarcodeFormat::QR_CODE);
-        #endif
-        
+#if PSDK_MAJOR == 5
+        auto hints = ZXing::DecodeHints().setFormats(ZXing::BarcodeFormat::QRCode);
+#else
+        auto hints = ZXing::DecodeHints().setFormats(ZXing::BarcodeFormat::QR_CODE);
+#endif
+
         auto result = ZXing::ReadBarcode(image, hints);
-        if (result.isValid()) {
+        if (result.isValid())
+        {
             auto ws = result.text();
             std::string text(ws.begin(), ws.end());
             m_onChangeQR(text);
-        } else {
+        }
+        else
+        {
             m_onChangeQR("");
         }
     }

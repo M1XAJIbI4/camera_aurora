@@ -26,6 +26,9 @@ class CameraAurora extends CameraPlatform {
 
   Stream<String> get onSearchQr => CameraAuroraPlatform.instance.onChangeQr();
 
+  Future<String?> checkImage(String imagePath) async =>
+      CameraAuroraPlatform.instance.checkImage(imagePath);
+
   @override
   Future<List<CameraDescription>> availableCameras() =>
       CameraAuroraPlatform.instance.availableCameras();

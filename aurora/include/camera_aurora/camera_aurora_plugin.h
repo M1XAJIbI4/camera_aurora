@@ -33,6 +33,7 @@ private:
     void onStopCapture(const MethodCall &call);
 
     void onTakePicture(const MethodCall &call);
+    void onCheckImage(const MethodCall &call);
 
     void onStartVideoRecording(const MethodCall &call);
     void onStopVideoRecording(const MethodCall &call);

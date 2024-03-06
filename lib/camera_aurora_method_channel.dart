@@ -49,6 +49,17 @@ class MethodChannelCameraAurora extends CameraAuroraPlatform {
   }
 
   @override
+  Future<String?> checkImage(String imagePath) async {
+    final result = await methodsChannel.invokeMethod<String?>(
+      imagePath,
+      {
+        'imagePath': imagePath,
+      },
+    );
+    return result;
+  }
+
+  @override
   Future<void> resizeFrame(double width, double height) async {
     await methodsChannel
         .invokeMethod<Object?>(CameraAuroraMethods.resizeFrame.name, {

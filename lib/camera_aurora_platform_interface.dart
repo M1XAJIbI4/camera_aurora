@@ -35,6 +35,10 @@ abstract class CameraAuroraPlatform extends PlatformInterface {
     throw UnimplementedError('onChangeQr() has not been implemented.');
   }
 
+  Future<String?> checkImage(String imagePath) async {
+    throw UnimplementedError('checkImage() has not been implemented.');
+  }
+
   Future<void> resizeFrame(double width, double height) {
     throw UnimplementedError('resizeFrame() has not been implemented.');
   }
