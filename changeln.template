@@ -1,0 +1,50 @@
+### Changeln template example
+### Template engine is Mako - https://www.makotemplates.org/
+### Base template format is Markdown - https://python-markdown.github.io/
+<%! from datetime import datetime %>${"##"} Updated: ${ln_date.strftime('%d/%m/%Y %H:%M:%S %p')}
+
+${"###"} Info
+
+- Last tag: ${ln_last}
+- Released: ${ln_released}
+
+% if ln_list_tags:
+	${"##"} Versions
+
+	% for item in ln_list_tags:
+	- Version: ${item.name} (${datetime.fromtimestamp(item.commit.committed_date).strftime('%d/%m/%Y')})
+	% endfor
+% endif
+% for item in ln_list_groups:
+    %if item['to'] != 'HEAD' and 'camera_aurora-' in item['tag'].name:
+
+        ${"###"} Version: ${item['tag'].name} (${datetime.fromtimestamp(item['tag'].commit.committed_date).strftime('%d/%m/%Y')})
+
+        % if item['Feature'] or item['Change'] or item['Bug']:
+            % if item['Feature']:
+
+                ${'####'} Feature
+
+            % endif
+            % for feature in item['Feature']:
+                * ${feature['optional'][2]}
+            % endfor
+            % if item['Change']:
+
+                ${'####'} Change
+
+            % endif
+            % for change in item['Change']:
+                * ${change['optional'][2]}
+            % endfor
+            % if item['Bug']:
+
+                ${'####'} Bug
+
+            % endif
+            % for bug in item['Bug']:
+                * ${bug['optional'][2]}
+            % endfor
+        % endif
+    %endif
+% endfor

@@ -1,0 +1,16 @@
+### Changeln Configuration Settings
+
+# Template engine is Mako - https://www.makotemplates.org/
+# Base template format is Markdown - https://python-markdown.github.io/
+---
+
+### Tag find
+tags: 'camera_aurora-.*'
+
+### Group commits
+# {group name}: {regex}
+groups:
+  Bug: '\[(camera_aurora)\]\[(bug)\]\s+(.+)'
+  Change: '\[(camera_aurora)\]\[(change)\]\s+(.+)'
+  Feature: '\[(camera_aurora)\]\[(feature)\]\s+(.+)'
+
